@@ -6,10 +6,17 @@ var request = require('request');
 var cheerio = require('cheerio');
 var async = require('async');
 var _ = require('underscore');
+var sqlite3 = require('sqlite3').verbose();
+var fs = require('fs');
 
 var wishlistUrlTemplate = 'http://www.amazon.co.uk/registry/wishlist/${wishlistId}?layout=compact'
 var wishlistId = '1QJBF75CZDO9E'
 var wishlistUrl = wishlistUrlTemplate.replace('${wishlistId}', wishlistId);
+
+var file = 'db/fancy.db';
+var dbExists = fs.existsSync(file);
+var db = new sqlite3.Database(file);
+db.run('CREATE TABLE IF NOT EXISTS wishlist (wishlist TEXT, title TEXT, buy TEXT, price REAL, want INTEGER, got INTEGER, priority TEXT)');
 
 program
     .version(package.version)
@@ -18,7 +25,7 @@ program
 program
     .command('update')
     .description('Processes the files in the specified directory')
-    .action(function(dir) {
+    .action(function() {
     	var items = [];
     	var currentPage = 0;
     	var totalPages = null;
@@ -31,8 +38,10 @@ program
 		    		if (!err && resp.statusCode === 200) {
 		    			$ = cheerio.load(body);
 		    			totalPages = parseInt($('.num-pages').text());
-		    			
-		    			items = items.concat(processItems($));
+
+		    			var newItems = processItems($);
+		    			console.log('Processed %d items in page %d', newItems.length, currentPage);
+		    			items = items.concat(newItems);
 		    			
 		    			done();
 		    		}
@@ -43,16 +52,41 @@ program
 		    	return currentPage < totalPages;
 		    },
 		    function(err) {
-		    	//console.log(items);
-				console.log();
-				console.log('Found %d items', items.length);
-				vinylItems = _.filter(items, function(item) { return /vinyl/i.test(item.title); });
-				console.log(vinylItems);
-				console.log('Total Vinyl items', vinylItems.length);
-				process.exit(0);
+		    	db.serialize(function() {
+		    		var stmt = db.prepare('INSERT INTO wishlist VALUES (?, ?, ?, ?, ?, ?, ?)');
+	    			items.forEach(function(item) {
+	    				stmt.run(wishlistId, item.title, item.buy, item.price, item.want, item.got, item.priority);
+	    			});
+
+	    			stmt.finalize();
+	    			db.close();
+		    	});		    	
 		    }
 	    );
     });
+
+program
+	.command('list [query]')
+	.description('searches the wishlist')
+	.action(function(query) {
+		var searchQuery = 'SELECT title, price FROM wishlist';
+		if (query) {
+			searchQuery += " WHERE title like '%" + query + "%'";
+		}
+
+		db.each(
+			searchQuery,
+			function(err, row) {
+    			console.log(row.title + ' - ' + row.price);
+    		},
+    		function(err, numRows) {
+    			db.close();
+    			console.log();
+    			console.log('Found %d items', numRows);
+    			console.log();
+    		}
+    	);
+	});
 
 program.parse(process.argv);
 

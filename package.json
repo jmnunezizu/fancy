@@ -25,7 +25,8 @@
     "underscore": "1.5.2",
     "request": "2.27.0",
     "iconv-lite": "0.2.11",
-    "async": "0.2.9"
+    "async": "0.2.9",
+    "sqlite3": "2.1.17"
   },
   "main": "lib/fancy.js",
   "bin": {
