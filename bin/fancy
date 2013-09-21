@@ -61,7 +61,7 @@ program
 				console.log();
 				console.log('Wishlist URL: %s', stats.wishlistUrl);
 				console.log('Total Items: %d', stats.totalItems);
-				console.log('Last updated on %s', stats.lastUpdated);
+				console.log('Last updated on: %s', stats.lastUpdated);
 				console.log();
 			});
 		})

@@ -16,7 +16,7 @@
     "url": "https://github.com/jmnunezizu/tuner.js.git"
   },
   "dependencies": {
-    "commander": "1.1.1",
+    "commander": "2.0.0",
     "cli-color": "0.2.1",
     "moment": "1.7.2",
     "async": "0.2.9",
