@@ -4,6 +4,21 @@ var program = require('commander');
 var package = require('../package');
 var Fancy = require('../lib/fancy')
 
+var listCommandAction = function(query) {
+	var fancy = new Fancy('1QJBF75CZDO9E');
+	fancy.list(query, function(err, items) {
+		if (err) return console.log(err);
+
+		items.forEach(function(item) {
+			console.log(item.title + ' - ' + item.price);
+		});
+
+		console.log();
+		console.log('Found %d items', items.length);
+		console.log();
+	});
+};
+
 program
     .version(package.version)
     .usage('[options] <command>...');
@@ -27,20 +42,12 @@ program
 program
 	.command('list [query]')
 	.description('searches the wishlist')
-	.action(function(query) {
-		var fancy = new Fancy('1QJBF75CZDO9E');
-		fancy.list(query, function(err, items) {
-			if (err) return console.log(err);
+	.action(listCommandAction);
 
-			items.forEach(function(item) {
-				console.log(item.title + ' - ' + item.price);
-			});
-
-			console.log();
-			console.log('Found %d items', items.length);
-			console.log();
-		});
-	});
+program
+	.command('ls [query]')
+	.description('searches the wishlist')
+	.action(listCommandAction);
 
 program
 	.command('stats')
