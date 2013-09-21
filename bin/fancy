@@ -8,6 +8,7 @@ var async = require('async');
 var _ = require('underscore');
 var sqlite3 = require('sqlite3').verbose();
 var fs = require('fs');
+var Fancy = require('../lib/fancy')
 
 var wishlistUrlTemplate = 'http://www.amazon.co.uk/registry/wishlist/${wishlistId}?layout=compact'
 var wishlistId = '1QJBF75CZDO9E'
@@ -26,86 +27,32 @@ program
     .command('update')
     .description('Processes the files in the specified directory')
     .action(function() {
-    	var items = [];
-    	var currentPage = 0;
-    	var totalPages = null;
-    	async.doWhilst(
-    		function(done) {
-    			currentPage++;
-    			var url = wishlistUrl + '&page=' + currentPage;
-    			console.log('requesting url %s', url);
-		    	request(url, { encoding: 'binary' }, function(err, resp, body) {
-		    		if (!err && resp.statusCode === 200) {
-		    			$ = cheerio.load(body);
-		    			totalPages = parseInt($('.num-pages').text());
+    	var fancy = new Fancy('1QJBF75CZDO9E');
+    	fancy.update(function(err, status) {
+    		if (err) return console.log(err);
 
-		    			var newItems = processItems($);
-		    			console.log('Processed %d items in page %d', newItems.length, currentPage);
-		    			items = items.concat(newItems);
-		    			
-		    			done();
-		    		}
-		    	});
-		    },
-		    function() {
-		    	console.log('currentPage %d of totalPages %d', currentPage, totalPages);
-		    	return currentPage < totalPages;
-		    },
-		    function(err) {
-		    	db.serialize(function() {
-		    		var stmt = db.prepare('INSERT INTO wishlist VALUES (?, ?, ?, ?, ?, ?, ?)');
-	    			items.forEach(function(item) {
-	    				stmt.run(wishlistId, item.title, item.buy, item.price, item.want, item.got, item.priority);
-	    			});
-
-	    			stmt.finalize();
-	    			db.close();
-		    	});		    	
-		    }
-	    );
+    		console.log();
+    		console.log('%d items imported into the wishlist', status.totalItems);
+    		console.log();
+    	})
     });
 
 program
 	.command('list [query]')
 	.description('searches the wishlist')
 	.action(function(query) {
-		var searchQuery = 'SELECT title, price FROM wishlist';
-		if (query) {
-			searchQuery += " WHERE title like '%" + query + "%'";
-		}
+		var fancy = new Fancy('1QJBF75CZDO9E');
+		fancy.list(query, function(err, items) {
+			if (err) return console.log(err);
 
-		db.each(
-			searchQuery,
-			function(err, row) {
-    			console.log(row.title + ' - ' + row.price);
-    		},
-    		function(err, numRows) {
-    			db.close();
-    			console.log();
-    			console.log('Found %d items', numRows);
-    			console.log();
-    		}
-    	);
+			items.forEach(function(item) {
+				console.log(item.title + ' - ' + item.price);
+			});
+
+			console.log();
+			console.log('Found %d items', items.length);
+			console.log();
+		});
 	});
 
 program.parse(process.argv);
-
-processItems = function(data) {
-	var items = [];
-	$('.compact-items').find('.itemWrapper tr').each(function(i, itemRow) {
-		var itemProperties = $(this).children();
-		var item = {
-			title: $(itemProperties[0]).find('.productTitle a').text() + $(itemProperties[0]).find('span.tiny').text(),
-			buy: $(itemProperties[1]).find('span a span').attr('alt'),
-			price: parseFloat($(itemProperties[2]).text().replace('£', '')),
-			want: parseInt($(itemProperties[3]).text()),
-			got: parseInt($(itemProperties[4]).text()),
-			priority: $(itemProperties[5]).text()
-		};
-		
-		items.push(item);
-	});
-
-	return items;
-};
-
