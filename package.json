@@ -1,0 +1,37 @@
+{
+  "name": "fancy",
+  "version": "0.0.0",
+  "description": "Amazon Wishlist for the command line",
+  "keywords": [
+    "cli",
+    "Amazon",
+    "wishlist"
+  ],
+  "author": {
+    "name": "Jose Maria Nunez Izu",
+    "email": "<jmnunezizu@gmail.com>"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jmnunezizu/tuner.js.git"
+  },
+  "dependencies": {
+    "commander": "1.1.1",
+    "cli-color": "0.2.1",
+    "moment": "1.7.2",
+    "async": "0.2.9",
+    "nconf": "0.6.7",
+    "cheerio": "0.12.2",
+    "underscore": "1.5.2",
+    "request": "2.27.0",
+    "iconv-lite": "0.2.11",
+    "async": "0.2.9"
+  },
+  "main": "lib/fancy.js",
+  "bin": {
+    "fancy": "./bin/fancy"
+  },
+  "engines": {
+    "node": ">=0.4.0"
+  }
+}
