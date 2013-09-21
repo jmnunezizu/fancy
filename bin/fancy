@@ -2,22 +2,7 @@
 
 var program = require('commander');
 var package = require('../package');
-var request = require('request');
-var cheerio = require('cheerio');
-var async = require('async');
-var _ = require('underscore');
-var sqlite3 = require('sqlite3').verbose();
-var fs = require('fs');
 var Fancy = require('../lib/fancy')
-
-var wishlistUrlTemplate = 'http://www.amazon.co.uk/registry/wishlist/${wishlistId}?layout=compact'
-var wishlistId = '1QJBF75CZDO9E'
-var wishlistUrl = wishlistUrlTemplate.replace('${wishlistId}', wishlistId);
-
-var file = 'db/fancy.db';
-var dbExists = fs.existsSync(file);
-var db = new sqlite3.Database(file);
-db.run('CREATE TABLE IF NOT EXISTS wishlist (wishlist TEXT, title TEXT, buy TEXT, price REAL, want INTEGER, got INTEGER, priority TEXT)');
 
 program
     .version(package.version)
@@ -28,13 +13,15 @@ program
     .description('Processes the files in the specified directory')
     .action(function() {
     	var fancy = new Fancy('1QJBF75CZDO9E');
-    	fancy.update(function(err, status) {
-    		if (err) return console.log(err);
+    	fancy.on('ready', function() {
+	    	fancy.update(function(err, status) {
+	    		if (err) return console.log(err);
 
-    		console.log();
-    		console.log('%d items imported into the wishlist', status.totalItems);
-    		console.log();
-    	})
+	    		console.log();
+	    		console.log('%d items imported into the wishlist', status.totalItems);
+	    		console.log();
+	    	});
+	    });
     });
 
 program
@@ -53,6 +40,24 @@ program
 			console.log('Found %d items', items.length);
 			console.log();
 		});
+	});
+
+program
+	.command('stats')
+	.description('Show statistics about the wishlist')
+	.action(function() {
+		var fancy = new Fancy('1QJBF75CZDO9E');
+		fancy.on('ready', function() {
+			fancy.stats(function(err, stats) {
+				if (err) return console.log(err);
+
+				console.log();
+				console.log('Wishlist URL: %s', stats.wishlistUrl);
+				console.log('Total Items: %d', stats.totalItems);
+				console.log('Last updated on %s', stats.lastUpdated);
+				console.log();
+			});
+		})
 	});
 
 program.parse(process.argv);
