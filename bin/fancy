@@ -6,18 +6,18 @@ var Fancy = require('../lib/fancy')
 var color = require('cli-color')
 
 var listCommandAction = function(query) {
-	var fancy = new Fancy('1QJBF75CZDO9E');
-	fancy.list(query, function(err, items) {
-		if (err) return console.log(err);
+    var fancy = new Fancy('1QJBF75CZDO9E');
+    fancy.list(query, function(err, items) {
+        if (err) return console.log(err);
 
-		items.forEach(function(item) {
-			console.log(item.title + ' - ' + color.green(item.price));
-		});
+        items.forEach(function(item) {
+            console.log(item.title + ' - ' + color.green(item.price));
+        });
 
-		console.log();
-		console.log('Found %d items', items.length);
-		console.log();
-	});
+        console.log();
+        console.log('Found %d items', items.length);
+        console.log();
+    });
 };
 
 program
@@ -28,44 +28,44 @@ program
     .command('update')
     .description('Processes the files in the specified directory')
     .action(function() {
-    	var fancy = new Fancy('1QJBF75CZDO9E');
-    	fancy.on('ready', function() {
-	    	fancy.update(function(err, status) {
-	    		if (err) return console.log(err);
+        var fancy = new Fancy('1QJBF75CZDO9E');
+        fancy.on('ready', function() {
+            fancy.update(function(err, status) {
+                if (err) return console.log(err);
 
-	    		console.log();
-	    		console.log('%d items imported into the wishlist', status.totalItems);
-	    		console.log();
-	    	});
-	    });
+                console.log();
+                console.log('%d items imported into the wishlist', status.totalItems);
+                console.log();
+            });
+        });
     });
 
 program
-	.command('list [query]')
-	.description('searches the wishlist')
-	.action(listCommandAction);
+    .command('list [query]')
+    .description('searches the wishlist')
+    .action(listCommandAction);
 
 program
-	.command('ls [query]')
-	.description('searches the wishlist')
-	.action(listCommandAction);
+    .command('ls [query]')
+    .description('searches the wishlist')
+    .action(listCommandAction);
 
 program
-	.command('stats')
-	.description('Show statistics about the wishlist')
-	.action(function() {
-		var fancy = new Fancy('1QJBF75CZDO9E');
-		fancy.on('ready', function() {
-			fancy.stats(function(err, stats) {
-				if (err) return console.log(err);
+    .command('stats')
+    .description('Show statistics about the wishlist')
+    .action(function() {
+        var fancy = new Fancy('1QJBF75CZDO9E');
+        fancy.on('ready', function() {
+            fancy.stats(function(err, stats) {
+                if (err) return console.log(err);
 
-				console.log();
-				console.log('Wishlist URL: %s', stats.wishlistUrl);
-				console.log('Total Items: %d', stats.totalItems);
-				console.log('Last updated on: %s', stats.lastUpdated);
-				console.log();
-			});
-		})
-	});
+                console.log();
+                console.log('Wishlist URL: %s', stats.wishlistUrl);
+                console.log('Total Items: %d', stats.totalItems);
+                console.log('Last updated on: %s', stats.lastUpdated);
+                console.log();
+            });
+        })
+    });
 
 program.parse(process.argv);
