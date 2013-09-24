@@ -3,6 +3,7 @@
 var program = require('commander');
 var package = require('../package');
 var Fancy = require('../lib/fancy')
+var color = require('cli-color')
 
 var listCommandAction = function(query) {
 	var fancy = new Fancy('1QJBF75CZDO9E');
@@ -10,7 +11,7 @@ var listCommandAction = function(query) {
 		if (err) return console.log(err);
 
 		items.forEach(function(item) {
-			console.log(item.title + ' - ' + item.price);
+			console.log(item.title + ' - ' + color.green(item.price));
 		});
 
 		console.log();
